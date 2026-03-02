@@ -65,7 +65,7 @@ import com.example.bussinessplant.model.UserModel
 import com.example.bussinessplant.ui.theme.Green
 import com.example.bussinessplant.ui.theme.White
 import com.example.bussinessplant.viewmodel.UserViewModel
-import com.example.c37c.repository.UserRepoImpl
+import com.example.bussinessplant.repository.UserRepoImpl
 
 class Registration : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -372,9 +372,7 @@ fun RegistrationBody(){
                                         userViewModel.addUserToDatabase(userId, model) { dbSuccess, dbMessage ->
                                             if (dbSuccess) {
                                                 Toast.makeText(context, "Registration Successful", Toast.LENGTH_LONG).show()
-                                                // Navigate to Dashboard or Logic
-                                                // For now, finishing activity or navigating
-                                                // Maybe go to Login or Dashboard
+                                                // Navigate to Login
                                                  val intent = Intent(context, Login::class.java)
                                                  context.startActivity(intent)
                                                  activity.finish()
