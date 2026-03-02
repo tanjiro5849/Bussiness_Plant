@@ -60,7 +60,7 @@ import com.example.bussinessplant.R
 import com.example.bussinessplant.ui.theme.Green
 import com.example.bussinessplant.ui.theme.White
 import com.example.bussinessplant.viewmodel.UserViewModel
-import com.example.c37c.repository.UserRepoImpl
+import com.example.bussinessplant.repository.UserRepoImpl
 
 class Login : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
