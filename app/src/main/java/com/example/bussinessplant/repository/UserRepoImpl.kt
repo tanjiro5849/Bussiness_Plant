@@ -1,6 +1,5 @@
-package com.example.c37c.repository
+package com.example.bussinessplant.repository
 
-import com.example.bussinessplant.repository.UserRepo
 import com.example.bussinessplant.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
