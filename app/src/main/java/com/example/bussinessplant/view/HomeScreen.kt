@@ -4,31 +4,27 @@ import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -50,24 +46,17 @@ fun HomeScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color.White, Color(0xFFF0FDF4)) // Light green tint at bottom
-                )
-            )
+            .background(Color.White)
             .verticalScroll(scrollState)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header
+        // --- Header ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Logo
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(id = R.drawable.logo),
@@ -77,152 +66,213 @@ fun HomeScreen() {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color.Black)) {
-                            append("Business")
-                        }
-                        withStyle(style = SpanStyle(color = Green)) {
-                            append("Plant")
-                        }
+                        withStyle(style = SpanStyle(color = Color.Black)) { append("Business") }
+                        withStyle(style = SpanStyle(color = Green)) { append("Plant") }
                     },
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            // Header Buttons (Simplified for mobile)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                 // Browse Businesses - maybe hide on small screens or keep simple
-                 /* TextButton(onClick = { }) {
-                     Text("Browse", color = Color.Gray)
-                 } */
-                 
-                 // Sign In Button
-                 TextButton(onClick = {
-                     val intent = Intent(context, Login::class.java)
-                     context.startActivity(intent)
-                 }) {
-                     Text("Sign In", color = Color.Black)
-                 }
-                 
-                 Spacer(modifier = Modifier.width(4.dp))
-
-                 Button(
-                    onClick = { 
-                        // Navigate to Registration
-                        val intent = Intent(context, SignUpActivity::class.java)
-                        context.startActivity(intent)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Green),
+                TextButton(onClick = { /* Browse Businesses */ }) {
+                    Text("Browse Businesses", color = Color.Gray, fontSize = 14.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedButton(
+                    onClick = { context.startActivity(Intent(context, DashboardActivity::class.java)) },
+                    border = BorderStroke(1.dp, Color.LightGray),
                     shape = RoundedCornerShape(8.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                     modifier = Modifier.height(36.dp)
                 ) {
-                    Text("Get Started", color = White, fontSize = 12.sp)
+                    Text("Dashboard", color = Color.Black, fontSize = 14.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.LightGray)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.face),
+                        contentDescription = "Profile",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        // --- Hero Section ---
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier.background(Color(0xFFE8F5E9), CircleShape).padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = Green, modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Crowdfunding for Everyone", color = Green, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Invest in Real Businesses,\nEarn Real Returns",
+                fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color.Black,
+                textAlign = TextAlign.Center, lineHeight = 44.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "BusinessPlant connects everyday investors with promising businesses. Fund entrepreneurs, earn interest on loans, and grow together.",
+                fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 24.dp)
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Row {
+                Button(
+                    onClick = { /* Start Investing */ },
+                    colors = ButtonDefaults.buttonColors(containerColor = Green),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(48.dp)
+                ) {
+                    Text("Start Investing", color = White)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                OutlinedButton(
+                    onClick = { /* List Business */ },
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(48.dp)
+                ) {
+                    Text("List Your Business", color = Color.Black)
+                }
+            }
+            Spacer(modifier = Modifier.height(60.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                StatItem("NPR 100M+", "Total Funded")
+                StatItem("500+", "Businesses")
+                StatItem("10K+", "Investors")
+            }
+        }
 
-        // Hero Section
-        
-        // Tagline
+        // --- How It Works ---
+        Column(
+            modifier = Modifier.fillMaxWidth().background(Color(0xFFFAFAFA)).padding(vertical = 60.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("How It Works", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text("Whether you're looking to invest or seeking funding, BusinessPlant makes it simple.", fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(40.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                HowItWorksColumn(
+                    title = "For Investors",
+                    icon = Icons.Default.Star,
+                    steps = listOf("Browse verified business listings", "Review documents and loan terms", "Invest any amount you choose", "Earn interest on your investment"),
+                    iconColor = Green
+                )
+                HowItWorksColumn(
+                    title = "For Business Owners",
+                    icon = Icons.Default.Info,
+                    steps = listOf("Create your business profile", "Upload verification documents", "Set your loan terms and interest rate", "Receive funding from multiple investors"),
+                    iconColor = Color(0xFFB8860B)
+                )
+            }
+        }
+
+        // --- Featured Businesses ---
+        Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+                Column {
+                    Text("Featured Businesses", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Discover promising businesses seeking investment", fontSize = 14.sp, color = Color.Gray)
+                }
+                OutlinedButton(onClick = { /* View All */ }, shape = RoundedCornerShape(8.dp)) {
+                    Text("View All", color = Color.Black)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(16.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                BusinessCard("GreenLeaf Organics", "Food & Beverage", 42500, 75000, 8.5, 24)
+                Spacer(modifier = Modifier.width(16.dp))
+                BusinessCard("TechRepair Hub", "Technology", 28000, 50000, 7.5, 18)
+                Spacer(modifier = Modifier.width(16.dp))
+                BusinessCard("Urban Fitness Studio", "Health & Wellness", 67000, 120000, 8.0, 36)
+            }
+        }
+
+        // --- Why Choose ---
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 60.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Why Choose BusinessPlant", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text("We're building a more accessible investment ecosystem", fontSize = 14.sp, color = Color.Gray)
+            Spacer(modifier = Modifier.height(48.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                WhyChooseItem(Icons.AutoMirrored.Filled.List, "Verified Businesses", "All businesses upload verification documents for transparency.")
+                WhyChooseItem(Icons.Default.Notifications, "Competitive Returns", "Earn interest rates set by businesses, often higher than savings.")
+                WhyChooseItem(Icons.Default.Info, "Direct Impact", "Your investment directly helps real entrepreneurs grow.")
+            }
+        }
+
+        // --- Call to Action ---
         Box(
-            modifier = Modifier
-                .background(Color(0xFFE8F5E9), shape = RoundedCornerShape(20.dp))
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier = Modifier.fillMaxWidth().padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Green).padding(40.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                 Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Crowdfunding for Everyone",
-                    color = Green,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
-                )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Ready to Start Your Journey?", color = White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Join thousands of investors and entrepreneurs today.", color = White.copy(0.8f), fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = { context.startActivity(Intent(context, SignUpActivity::class.java)) },
+                    colors = ButtonDefaults.buttonColors(containerColor = White),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Create Free Account", color = Green)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Headline
-        Text(
-            text = "Invest in Real Businesses,",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            textAlign = TextAlign.Center,
-            lineHeight = 40.sp
-        )
-        Text(
-            text = "Earn Real Returns",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = Green,
-            textAlign = TextAlign.Center,
-            lineHeight = 40.sp
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Sub-headline
-        Text(
-            text = "BusinessPlant connects everyday investors with promising businesses.\nFund entrepreneurs, earn interest on loans, and grow together.",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        // Hero Buttons
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Button(
-                onClick = { /* Start Investing Logic */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Green),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.height(50.dp)
-            ) {
-                Text("Start Investing", color = White)
-                Spacer(modifier = Modifier.width(8.dp))
-                // Arrow icon could go here
+        // --- Footer ---
+        Column(modifier = Modifier.fillMaxWidth().background(Color(0xFFF8F9FA)).padding(40.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(painterResource(R.drawable.logo), null, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("BusinessPlant", fontWeight = FontWeight.Bold, color = Green)
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Connecting everyday investors with promising businesses. Invest in real businesses, earn real returns.", color = Color.Gray, fontSize = 12.sp)
+                }
+                Column(modifier = Modifier.weight(0.5f).padding(start = 32.dp)) {
+                    Text("Platform", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    FooterLink("Browse Businesses")
+                    FooterLink("List Your Business")
+                    FooterLink("Dashboard")
+                }
+                Column(modifier = Modifier.weight(0.5f)) {
+                    Text("Support", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    FooterLink("Help Center")
+                    FooterLink("Terms of Service")
+                    FooterLink("Privacy Policy")
+                }
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Button(
-                onClick = { /* List Business Logic */ },
-                colors = ButtonDefaults.buttonColors(containerColor = White),
-                border = BorderStroke(1.dp, Color.LightGray),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.height(50.dp)
-            ) {
-                Text("List Your Business", color = Color.Black)
-            }
+            Spacer(modifier = Modifier.height(40.dp))
+            HorizontalDivider(color = Color.LightGray)
+            Spacer(modifier = Modifier.height(20.dp))
+            Text("© 2025 BusinessPlant. All rights reserved.", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
         }
-
-        Spacer(modifier = Modifier.height(50.dp))
-
-        // Stats Section
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            StatItem(value = "$1M+", label = "Total Funded")
-            StatItem(value = "500+", label = "Businesses")
-            StatItem(value = "10K+", label = "Investors")
-        }
-        
-        Spacer(modifier = Modifier.height(50.dp))
     }
 }
 
@@ -231,14 +281,86 @@ fun StatItem(value: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
-            fontSize = 24.sp,
+            fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = Green
         )
         Text(
             text = label,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             color = Color.Gray
         )
     }
+}
+
+@Composable
+fun HowItWorksColumn(title: String, icon: ImageVector, steps: List<String>, iconColor: Color) {
+    Column(modifier = Modifier.width(180.dp).padding(horizontal = 8.dp)) {
+        Box(modifier = Modifier.size(40.dp).background(iconColor.copy(0.1f), RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = iconColor, modifier = Modifier.size(20.dp))
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(title, fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 18.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        steps.forEachIndexed { i, step ->
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                Box(modifier = Modifier.size(20.dp).background(iconColor, CircleShape), contentAlignment = Alignment.Center) {
+                    Text("${i+1}", color = White, fontSize = 10.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(step, fontSize = 12.sp, color = Color.Gray)
+            }
+        }
+    }
+}
+
+@Composable
+fun BusinessCard(name: String, category: String, raised: Int, total: Int, interest: Double, months: Int) {
+    Card(modifier = Modifier.width(280.dp), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = White), border = BorderStroke(1.dp, Color.LightGray)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().height(120.dp).background(Color(0xFFEEEEEE), RoundedCornerShape(8.dp)), contentAlignment = Alignment.TopStart) {
+                Text(category, modifier = Modifier.padding(8.dp).background(White, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("A sustainable business delivering value directly to customers.", fontSize = 12.sp, color = Color.Gray)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Raised", fontSize = 12.sp, color = Color.Gray)
+                Text("NPR $raised of $total", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(progress = { raised.toFloat() / total }, modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape), color = Green, trackColor = Color(0xFFE8F5E9))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("${(raised.toFloat()/total * 100).toInt()}% funded", fontSize = 10.sp, color = Color.Gray, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Star, null, tint = Green, modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("$interest% Interest", fontSize = 12.sp, color = Color.Black)
+                }
+                Text("$months months", fontSize = 12.sp, color = Color.Gray)
+            }
+        }
+    }
+}
+
+@Composable
+fun WhyChooseItem(icon: ImageVector, title: String, desc: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(100.dp)) {
+        Box(modifier = Modifier.size(48.dp).background(Green.copy(0.1f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = Green, modifier = Modifier.size(24.dp))
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(title, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, fontSize = 14.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(desc, textAlign = TextAlign.Center, fontSize = 11.sp, color = Color.Gray)
+    }
+}
+
+@Composable
+fun FooterLink(text: String) {
+    Text(text, fontSize = 13.sp, color = Color.Gray, modifier = Modifier.padding(vertical = 4.dp).clickable { /* Navigate */ })
 }
