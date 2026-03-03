@@ -22,8 +22,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bussinessplant.R
+import com.example.bussinessplant.ui.theme.BussinessplantTheme
 import com.example.bussinessplant.ui.theme.Green
 import com.example.bussinessplant.ui.theme.White
 import com.example.bussinessplant.viewmodel.UserViewModel
@@ -67,7 +71,9 @@ class Login : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LoginBody()
+            BussinessplantTheme {
+                LoginBody()
+            }
         }
     }
 }
@@ -81,6 +87,7 @@ fun LoginBody() {
     val context = LocalContext.current
     val activity = context as Activity
     val userViewModel = remember { UserViewModel(UserRepoImpl()) }
+    val scrollState = rememberScrollState()
 
     Scaffold(
         containerColor = Color(0xFFF5F7F8) 
@@ -88,10 +95,12 @@ fun LoginBody() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Spacer(modifier = Modifier.height(20.dp))
             // Logo Section
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -100,7 +109,7 @@ fun LoginBody() {
                  Image(
                     painter = painterResource(id = R.drawable.logo),
                     contentDescription = "Logo",
-                    modifier = Modifier.size(50.dp) // Adjust size as needed
+                    modifier = Modifier.size(50.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
@@ -136,7 +145,7 @@ fun LoginBody() {
                             .fillMaxWidth()
                             .height(50.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFE0E0E0)) // Light gray background for the toggle container
+                            .background(Color(0xFFE0E0E0))
                             .padding(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -180,7 +189,7 @@ fun LoginBody() {
                         value = email,
                         onValueChange = { email = it },
                         placeholder = { Text("you@example.com", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("emailField"),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedContainerColor = Color(0xFFF8F9FA),
@@ -205,7 +214,7 @@ fun LoginBody() {
                         value = password,
                         onValueChange = { password = it },
                         placeholder = { Text("........", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("passwordField"),
                         shape = RoundedCornerShape(8.dp),
                         visualTransformation = if (visibility) VisualTransformation.None else PasswordVisualTransformation(),
                          trailingIcon = {
@@ -227,7 +236,24 @@ fun LoginBody() {
                         )
                     )
 
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Forget Password link
+                    Text(
+                        text = "Forget Password?",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(context, ForgetPassword::class.java)
+                                context.startActivity(intent)
+                            },
+                        textAlign = TextAlign.End,
+                        color = Green,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(15.dp))
 
                     // Sign In Button
                     Button(
@@ -248,7 +274,8 @@ fun LoginBody() {
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp),
+                            .height(50.dp)
+                            .testTag("signInButton"),
                         colors = ButtonDefaults.buttonColors(containerColor = Green),
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -266,6 +293,7 @@ fun LoginBody() {
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -273,5 +301,7 @@ fun LoginBody() {
 @Preview(showBackground = true)
 @Composable
 fun LoginBodyPreview() {
-    LoginBody()
+    BussinessplantTheme {
+        LoginBody()
+    }
 }

@@ -2,6 +2,7 @@ package com.example.bussinessplant.view
 
 import android.app.Activity
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +16,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,15 +30,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bussinessplant.R
+import com.example.bussinessplant.model.UserModel
+import com.example.bussinessplant.repository.UserRepoImpl
 import com.example.bussinessplant.ui.theme.Green
 import com.example.bussinessplant.ui.theme.White
+import com.example.bussinessplant.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun MoreScreen() {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
-    val user = auth.currentUser
+    val userViewModel = remember { UserViewModel(UserRepoImpl()) }
+    val currentUser = auth.currentUser
+    
+    val userData by userViewModel.users.observeAsState()
+    
+    var showEditDialog by (remember { mutableStateOf(false) })
+
+    LaunchedEffect(currentUser?.uid) {
+        currentUser?.uid?.let { userViewModel.getUserById(it) }
+    }
 
     Column(
         modifier = Modifier
@@ -50,8 +64,9 @@ fun MoreScreen() {
             // Profile Header
             item {
                 ProfileHeader(
-                    name = user?.displayName ?: "User Name",
-                    email = user?.email ?: "user@example.com"
+                    name = "${userData?.firstName ?: ""} ${userData?.lastName ?: ""}".trim().ifEmpty { currentUser?.displayName ?: "User Name" },
+                    email = userData?.email ?: currentUser?.email ?: "user@example.com",
+                    role = userData?.role ?: "User"
                 )
             }
 
@@ -66,11 +81,15 @@ fun MoreScreen() {
                     colors = CardDefaults.cardColors(containerColor = White)
                 ) {
                     Column {
-                        MenuItem(Icons.Default.Person, "Edit Profile") { /* Navigate */ }
+                        MenuItem(Icons.Default.Person, "Edit Profile") { 
+                            showEditDialog = true
+                        }
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F4))
-                        MenuItem(Icons.Default.Notifications, "Notifications") { /* Navigate */ }
+                        MenuItem(Icons.Default.Notifications, "Notifications") { /* Navigate to alerts tab logic could go here */ }
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F4))
-                        MenuItem(Icons.Default.Security, "Security & Privacy") { /* Navigate */ }
+                        MenuItem(Icons.Default.Security, "Security & Privacy") { 
+                            Toast.makeText(context, "Security settings coming soon", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
@@ -86,9 +105,13 @@ fun MoreScreen() {
                     colors = CardDefaults.cardColors(containerColor = White)
                 ) {
                     Column {
-                        MenuItem(Icons.AutoMirrored.Filled.HelpOutline, "Help Center") { /* Navigate */ }
+                        MenuItem(Icons.AutoMirrored.Filled.HelpOutline, "Help Center") { 
+                            Toast.makeText(context, "Redirecting to Help Center...", Toast.LENGTH_SHORT).show()
+                        }
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F4))
-                        MenuItem(Icons.Default.Info, "About BusinessPlant") { /* Navigate */ }
+                        MenuItem(Icons.Default.Info, "About BusinessPlant") { 
+                            Toast.makeText(context, "BusinessPlant v1.0", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
@@ -120,10 +143,28 @@ fun MoreScreen() {
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
+
+    if (showEditDialog && userData != null) {
+        EditProfileDialog(
+            user = userData!!,
+            onDismiss = { showEditDialog = false },
+            onSave = { updatedUser ->
+                userViewModel.updateProfile(updatedUser.userId, updatedUser) { success, msg ->
+                    if (success) {
+                        userViewModel.getUserById(updatedUser.userId)
+                        Toast.makeText(context, "Profile Updated", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                showEditDialog = false
+            }
+        )
+    }
 }
 
 @Composable
-fun ProfileHeader(name: String, email: String) {
+fun ProfileHeader(name: String, email: String, role: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -158,7 +199,7 @@ fun ProfileHeader(name: String, email: String) {
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        "Startup Founder",
+                        role,
                         color = White,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -168,6 +209,55 @@ fun ProfileHeader(name: String, email: String) {
             }
         }
     }
+}
+
+@Composable
+fun EditProfileDialog(user: UserModel, onDismiss: () -> Unit, onSave: (UserModel) -> Unit) {
+    var firstName by remember { mutableStateOf(user.firstName) }
+    var lastName by remember { mutableStateOf(user.lastName) }
+    var role by remember { mutableStateOf(user.role) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Profile") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Last Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = role,
+                    onValueChange = { role = it },
+                    label = { Text("Role") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { 
+                    onSave(user.copy(firstName = firstName, lastName = lastName, role = role))
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Green)
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
 
 @Composable
