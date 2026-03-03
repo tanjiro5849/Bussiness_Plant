@@ -6,9 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,22 +23,32 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.bussinessplant.model.NotificationModel
 import com.example.bussinessplant.model.PitchModel
+import com.example.bussinessplant.repository.NotificationRepoImpl
 import com.example.bussinessplant.repository.PitchRepoImpl
+import com.example.bussinessplant.ui.theme.BussinessplantTheme
 import com.example.bussinessplant.ui.theme.Green
 import com.example.bussinessplant.ui.theme.White
+import com.example.bussinessplant.viewmodel.NotificationViewModel
 import com.example.bussinessplant.viewmodel.PitchViewModel
+import com.example.bussinessplant.viewmodel.ViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import java.util.*
 
 class DashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DashboardMain()
+            BussinessplantTheme {
+                DashboardMain()
+            }
         }
     }
 }
@@ -47,6 +57,9 @@ class DashboardActivity : ComponentActivity() {
 fun DashboardMain() {
     var selectedTab by remember { mutableIntStateOf(0) }
     
+    val pitchViewModel: PitchViewModel = viewModel(factory = ViewModelFactory(PitchRepoImpl()))
+    val notificationViewModel: NotificationViewModel = viewModel(factory = ViewModelFactory(NotificationRepoImpl()))
+
     Scaffold(
         bottomBar = {
             NavigationBar(containerColor = White) {
@@ -76,7 +89,7 @@ fun DashboardMain() {
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (selectedTab) {
-                0 -> DashboardBody()
+                0 -> DashboardBody(pitchViewModel, notificationViewModel)
                 1 -> NotificationScreen()
                 2 -> MoreScreen()
             }
@@ -86,9 +99,9 @@ fun DashboardMain() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardBody() {
+fun DashboardBody(pitchViewModel: PitchViewModel, notificationViewModel: NotificationViewModel) {
     val context = LocalContext.current
-    val pitchViewModel = remember { PitchViewModel(PitchRepoImpl()) }
+    
     val pitches by pitchViewModel.pitches.observeAsState(initial = emptyList())
     val loading by pitchViewModel.loading.observeAsState(initial = false)
     
@@ -98,6 +111,20 @@ fun DashboardBody() {
 
     LaunchedEffect(Unit) {
         pitchViewModel.getAllPitches()
+        
+        // Holiday logic
+        val calendar = Calendar.getInstance()
+        val isNewYear = calendar.get(Calendar.MONTH) == Calendar.JANUARY && 
+                        calendar.get(Calendar.DAY_OF_MONTH) == 1
+        
+        if (isNewYear) {
+            notificationViewModel.addNotification(
+                NotificationModel(
+                    title = "Happy New Year! 🎉",
+                    message = "BusinessPlant wishes you a successful and prosperous year ahead."
+                )
+            ) { _, _ -> }
+        }
     }
 
     val filteredPitches = pitches?.filter { 
@@ -116,7 +143,7 @@ fun DashboardBody() {
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     placeholder = { Text("Search startups...", color = Color.White.copy(alpha = 0.7f)) },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     shape = RoundedCornerShape(12.dp),
                     leadingIcon = { Icon(Icons.Default.Search, null, tint = White) },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -128,11 +155,15 @@ fun DashboardBody() {
                     ),
                     singleLine = true
                 )
+                Spacer(modifier = Modifier.height(8.dp))
             }
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { selectedPitch = null; showDialog = true },
+                onClick = { 
+                    selectedPitch = null
+                    showDialog = true 
+                },
                 containerColor = Green,
                 contentColor = White,
                 shape = RoundedCornerShape(16.dp)
@@ -142,7 +173,7 @@ fun DashboardBody() {
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (loading) {
+            if (loading && (pitches?.isEmpty() ?: true)) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Green)
             } else if (filteredPitches.isNullOrEmpty()) {
                 Column(
@@ -160,13 +191,17 @@ fun DashboardBody() {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp)
                 ) {
-                    items(filteredPitches) { pitch ->
+                    items(filteredPitches ?: emptyList()) { pitch ->
                         PitchCard(
                             pitch = pitch,
-                            onEdit = { selectedPitch = pitch; showDialog = true },
+                            onEdit = { 
+                                selectedPitch = pitch
+                                showDialog = true 
+                            },
                             onDelete = {
-                                pitchViewModel.deletePitch(pitch.id) { _, message ->
+                                pitchViewModel.deletePitch(pitch.id) { success, message ->
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    if (success) pitchViewModel.getAllPitches()
                                 }
                             }
                         )
@@ -182,13 +217,27 @@ fun DashboardBody() {
                 onSave = { name, desc, cat ->
                     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
                     if (selectedPitch == null) {
-                        pitchViewModel.addPitch(PitchModel(startupName = name, description = desc, category = cat, userId = currentUserId)) { _, message ->
+                        pitchViewModel.addPitch(
+                            PitchModel(
+                                startupName = name, 
+                                description = desc, 
+                                category = cat, 
+                                userId = currentUserId,
+                                timestamp = System.currentTimeMillis()
+                            )
+                        ) { success, message ->
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            if (success) pitchViewModel.getAllPitches() 
                         }
                     } else {
-                        val updates = mapOf("startupName" to name, "description" to desc, "category" to cat)
-                        pitchViewModel.updatePitch(selectedPitch!!.id, updates) { _, message ->
+                        val updates = mapOf(
+                            "startupName" to name, 
+                            "description" to desc, 
+                            "category" to cat
+                        )
+                        pitchViewModel.updatePitch(selectedPitch!!.id, updates) { success, message ->
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            if (success) pitchViewModel.getAllPitches()
                         }
                     }
                     showDialog = false
@@ -208,13 +257,13 @@ fun PitchCard(pitch: PitchModel, onEdit: () -> Unit, onDelete: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(Green.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.Business, null, tint = Green, modifier = Modifier.size(24.dp))
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(text = pitch.startupName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text(text = pitch.startupName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Surface(color = Color(0xFFE8F5E9), shape = RoundedCornerShape(4.dp)) {
                             Text(text = pitch.category, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), color = Green)
                         }
@@ -231,6 +280,7 @@ fun PitchCard(pitch: PitchModel, onEdit: () -> Unit, onDelete: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditPitchDialog(pitch: PitchModel?, onDismiss: () -> Unit, onSave: (String, String, String) -> Unit) {
     var name by remember { mutableStateOf(pitch?.startupName ?: "") }
@@ -240,25 +290,74 @@ fun AddEditPitchDialog(pitch: PitchModel?, onDismiss: () -> Unit, onSave: (Strin
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (pitch == null) "Create Startup Pitch" else "Update Pitch") },
-        text = {
-            Column {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Startup Name") }, modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Category", fontSize = 12.sp, color = Color.Gray)
-                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    categories.take(3).forEach { cat ->
-                        FilterChip(selected = category == cat, onClick = { category = cat }, label = { Text(cat) })
+        content = {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = if (pitch == null) "Create Startup Pitch" else "Update Pitch",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Green
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Startup Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        leadingIcon = { Icon(Icons.Default.Business, null) }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Category", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(categories) { cat ->
+                            FilterChip(
+                                selected = category == cat,
+                                onClick = { category = cat },
+                                label = { Text(cat) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Green,
+                                    selectedLabelColor = White
+                                )
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = desc,
+                        onValueChange = { desc = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = onDismiss) { Text("Cancel", color = Color.Gray) }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { if (name.isNotBlank() && desc.isNotBlank()) onSave(name, desc, category) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Green),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = name.isNotBlank() && desc.isNotBlank()
+                        ) {
+                            Text("Save", color = White)
+                        }
                     }
                 }
-                OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
             }
-        },
-        confirmButton = {
-            Button(onClick = { if (name.isNotBlank()) onSave(name, desc, category) }, colors = ButtonDefaults.buttonColors(containerColor = Green)) {
-                Text("Save")
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        }
     )
 }

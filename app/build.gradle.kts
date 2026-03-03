@@ -54,7 +54,12 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.7.2") 
     implementation(libs.firebase.database)
     implementation(libs.firebase.auth)
+    implementation(libs.google.material) // Added Material library for XML themes
+    
+    // Testing Dependencies
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.kotlin)
+    
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

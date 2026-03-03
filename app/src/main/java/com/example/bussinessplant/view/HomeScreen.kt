@@ -14,9 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -156,6 +154,20 @@ fun HomeScreen() {
             }
         }
 
+        // --- Testimonials Section (New) ---
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Trusted by Founders & Investors", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                TestimonialCard("Saroj Sharma", "Investor", "BusinessPlant made it easy for me to diversify my portfolio with local startups.")
+                Spacer(modifier = Modifier.width(16.dp))
+                TestimonialCard("Anita Rai", "Founder", "We raised our first NPR 500K here in just two weeks! Amazing community.")
+            }
+        }
+
         // --- How It Works ---
         Column(
             modifier = Modifier.fillMaxWidth().background(Color(0xFFFAFAFA)).padding(vertical = 60.dp, horizontal = 16.dp),
@@ -204,43 +216,6 @@ fun HomeScreen() {
             }
         }
 
-        // --- Why Choose ---
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 60.dp, horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Why Choose BusinessPlant", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Text("We're building a more accessible investment ecosystem", fontSize = 14.sp, color = Color.Gray)
-            Spacer(modifier = Modifier.height(48.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                WhyChooseItem(Icons.AutoMirrored.Filled.List, "Verified Businesses", "All businesses upload verification documents for transparency.")
-                WhyChooseItem(Icons.Default.Notifications, "Competitive Returns", "Earn interest rates set by businesses, often higher than savings.")
-                WhyChooseItem(Icons.Default.Info, "Direct Impact", "Your investment directly helps real entrepreneurs grow.")
-            }
-        }
-
-        // --- Call to Action ---
-        Box(
-            modifier = Modifier.fillMaxWidth().padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Green).padding(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Ready to Start Your Journey?", color = White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Join thousands of investors and entrepreneurs today.", color = White.copy(0.8f), fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = { context.startActivity(Intent(context, SignUpActivity::class.java)) },
-                    colors = ButtonDefaults.buttonColors(containerColor = White),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Create Free Account", color = Green)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
-                }
-            }
-        }
-
         // --- Footer ---
         Column(modifier = Modifier.fillMaxWidth().background(Color(0xFFF8F9FA)).padding(40.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -272,6 +247,23 @@ fun HomeScreen() {
             HorizontalDivider(color = Color.LightGray)
             Spacer(modifier = Modifier.height(20.dp))
             Text("© 2025 BusinessPlant. All rights reserved.", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        }
+    }
+}
+
+@Composable
+fun TestimonialCard(name: String, role: String, quote: String) {
+    Card(
+        modifier = Modifier.width(240.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8E9))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Icon(Icons.Default.FormatQuote, null, tint = Green, modifier = Modifier.size(32.dp))
+            Text(quote, fontSize = 14.sp, color = Color.DarkGray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(role, fontSize = 12.sp, color = Color.Gray)
         }
     }
 }
