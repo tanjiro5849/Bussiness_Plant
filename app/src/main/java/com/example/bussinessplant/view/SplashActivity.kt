@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.bussinessplant.ui.theme.BussinessplantTheme
 import com.example.bussinessplant.ui.theme.Green
 import kotlinx.coroutines.delay
 
@@ -34,26 +35,29 @@ class SplashActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SplashScreen()
+            BussinessplantTheme {
+                SplashScreen()
+            }
         }
     }
 }
+
 @Composable
-fun SplashScreen(){
+fun SplashScreen() {
     val context = LocalContext.current
     val activity = context as Activity
 
-    LaunchedEffect (Unit) {
+    LaunchedEffect(Unit) {
         delay(3000)
-        val intent = Intent(context,
-            Login::class.java)
+        val intent = Intent(context, Login::class.java)
         context.startActivity(intent)
         activity.finish()
     }
 
-    Scaffold() {padding ->
+    Scaffold { padding ->
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(padding)
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -70,5 +74,4 @@ fun SplashScreen(){
             )
         }
     }
-
 }
