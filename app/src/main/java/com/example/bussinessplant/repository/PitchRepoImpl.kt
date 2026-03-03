@@ -46,6 +46,10 @@ class PitchRepoImpl : PitchRepo {
     }
 
     override fun updatePitch(pitchId: String, data: Map<String, Any?>, callback: (Boolean, String) -> Unit) {
+        if (pitchId.isEmpty()) {
+            callback(false, "Invalid Pitch ID")
+            return
+        }
         ref.child(pitchId).updateChildren(data).addOnCompleteListener {
             if (it.isSuccessful) {
                 callback(true, "Pitch updated successfully")
@@ -56,6 +60,10 @@ class PitchRepoImpl : PitchRepo {
     }
 
     override fun deletePitch(pitchId: String, callback: (Boolean, String) -> Unit) {
+        if (pitchId.isEmpty()) {
+            callback(false, "Invalid Pitch ID")
+            return
+        }
         ref.child(pitchId).removeValue().addOnCompleteListener {
             if (it.isSuccessful) {
                 callback(true, "Pitch deleted successfully")
