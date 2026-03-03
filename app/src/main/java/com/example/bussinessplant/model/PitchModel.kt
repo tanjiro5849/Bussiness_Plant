@@ -4,14 +4,18 @@ data class PitchModel(
     var id: String = "",
     var startupName: String = "",
     var description: String = "",
-    var userId: String = ""
+    var category: String = "Technology", // Added category
+    var userId: String = "",
+    var timestamp: Long = System.currentTimeMillis() // Added timestamp for sorting
 ) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "id" to id,
             "startupName" to startupName,
             "description" to description,
-            "userId" to userId
+            "category" to category,
+            "userId" to userId,
+            "timestamp" to timestamp
         )
     }
 }
